@@ -1,31 +1,35 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.IO;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 public class MainManager : MonoBehaviour
 {
+
+
     public Brick BrickPrefab;
     public int LineCount = 6;
     public Rigidbody Ball;
 
     public Text ScoreText;
     public GameObject GameOverText;
-    
+    public Text recordScoreText;
+
     private bool m_Started = false;
     private int m_Points;
-    
+
     private bool m_GameOver = false;
 
-    
-    // Start is called before the first frame update
+
+
     void Start()
     {
         const float step = 0.6f;
         int perLine = Mathf.FloorToInt(4.0f / step);
-        
-        int[] pointCountArray = new [] {1,1,2,2,5,5};
+
+        int[] pointCountArray = new[] { 1, 1, 2, 2, 5, 5 };
         for (int i = 0; i < LineCount; ++i)
         {
             for (int x = 0; x < perLine; ++x)
@@ -36,8 +40,13 @@ public class MainManager : MonoBehaviour
                 brick.onDestroyed.AddListener(AddPoint);
             }
         }
+        UpdateRecordText();
     }
+    private void UpdateRecordText()
+    {
 
+        recordScoreText.text = "Best Score : " + GameManager.Instance.record.username + " : " + GameManager.Instance.record.score;
+    }
     private void Update()
     {
         if (!m_Started)
@@ -66,11 +75,21 @@ public class MainManager : MonoBehaviour
     {
         m_Points += point;
         ScoreText.text = $"Score : {m_Points}";
+        if (m_Points > GameManager.Instance.record.score)
+        {
+            Debug.Log("Record reached");
+            GameManager.Instance.SaveRecords(GameManager.Instance.currentUsername, m_Points);
+            UpdateRecordText();
+        }
     }
 
     public void GameOver()
     {
         m_GameOver = true;
         GameOverText.SetActive(true);
+        if (m_Points > GameManager.Instance.record.score)
+        {
+            GameManager.Instance.SaveRecords(GameManager.Instance.currentUsername, m_Points);
+        }
     }
 }
